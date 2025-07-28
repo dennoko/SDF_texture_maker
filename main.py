@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
+import tkinter.font as tkfont
 from PIL import Image, ImageTk
 import os
 import threading
@@ -41,6 +42,9 @@ class SDFTextureApp:
         self.root.title("SDF Texture Maker for lilToon")
         self.root.geometry("1200x800")
         
+        # Windowsの標準フォント設定（ルートウィンドウ作成後）
+        self.setup_fonts()
+        
         # SDF処理クラス
         self.processor = SDFProcessor()
         
@@ -66,6 +70,42 @@ class SDFTextureApp:
         # ウィンドウ閉じる時の処理
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
     
+    def setup_fonts(self):
+        """Windowsの標準フォントを設定"""
+        # Windowsで利用可能な標準フォントを優先順位で定義
+        font_families = [
+            "Yu Gothic UI",      # Windows 10/11の標準日本語フォント
+            "Meiryo UI",         # Windows 7/8の標準日本語フォント
+            "MS UI Gothic",      # 古いWindowsの標準フォント
+            "Segoe UI",          # Windows標準英語フォント
+            "Arial",             # 汎用フォント
+            "sans-serif"         # フォールバック
+        ]
+        
+        # 利用可能なフォントファミリーを検出
+        try:
+            available_fonts = tkfont.families()
+        except Exception as e:
+            print(f"フォント検出エラー: {e}")
+            # フォント検出に失敗した場合はデフォルトを使用
+            available_fonts = ["Arial"]
+        
+        # 利用可能な最初のフォントを選択
+        selected_font = "Arial"  # デフォルト
+        for font_family in font_families:
+            if font_family in available_fonts:
+                selected_font = font_family
+                break
+        
+        # 各種フォントサイズのフォントオブジェクトを作成
+        self.font_large = ctk.CTkFont(family=selected_font, size=20, weight="bold")
+        self.font_medium = ctk.CTkFont(family=selected_font, size=16, weight="bold")
+        self.font_normal = ctk.CTkFont(family=selected_font, size=12, weight="bold")
+        self.font_small = ctk.CTkFont(family=selected_font, size=10)
+        self.font_body = ctk.CTkFont(family=selected_font, size=11)
+        
+        print(f"使用フォント: {selected_font}")
+    
     def setup_ui(self):
         """UIを設定"""
         # メインフレーム
@@ -87,7 +127,7 @@ class SDFTextureApp:
         """コントロールパネルを設定"""
         # タイトル
         title_label = ctk.CTkLabel(parent, text="SDF Texture Maker", 
-                                  font=ctk.CTkFont(size=20, weight="bold"))
+                                  font=self.font_large)
         title_label.pack(pady=(10, 20))
         
         # ファイル入力セクション
@@ -95,7 +135,7 @@ class SDFTextureApp:
         input_section.pack(fill="x", padx=10, pady=5)
         
         ctk.CTkLabel(input_section, text="グラデーション画像", 
-                    font=ctk.CTkFont(weight="bold")).pack(anchor="w", padx=10, pady=(10, 5))
+                    font=self.font_normal).pack(anchor="w", padx=10, pady=(10, 5))
         
         input_frame = ctk.CTkFrame(input_section)
         input_frame.pack(fill="x", padx=10, pady=(0, 10))
@@ -103,12 +143,12 @@ class SDFTextureApp:
         self.gradient_entry = ctk.CTkEntry(input_frame, textvariable=self.gradient_path)
         self.gradient_entry.pack(side="left", fill="x", expand=True, padx=(5, 5), pady=5)
         
-        ctk.CTkButton(input_frame, text="参照", width=60,
+        ctk.CTkButton(input_frame, text="参照", width=60, font=self.font_body,
                      command=self.browse_gradient).pack(side="right", padx=(0, 5), pady=5)
         
         # 処理ボタン
         process_btn = ctk.CTkButton(parent, text="SDF テクスチャ生成", height=40,
-                                   font=ctk.CTkFont(size=16, weight="bold"),
+                                   font=self.font_medium,
                                    command=self.process_sdf)
         process_btn.pack(fill="x", padx=10, pady=20)
         
@@ -117,22 +157,25 @@ class SDFTextureApp:
         output_section.pack(fill="x", padx=10, pady=5)
         
         ctk.CTkLabel(output_section, text="出力設定", 
-                    font=ctk.CTkFont(weight="bold")).pack(anchor="w", padx=10, pady=(10, 5))
+                    font=self.font_normal).pack(anchor="w", padx=10, pady=(10, 5))
         
         # 自動更新チェックボックス
         auto_update_cb = ctk.CTkCheckBox(output_section, text="ファイル変更時に自動更新",
                                         variable=self.auto_update,
+                                        font=self.font_body,
                                         command=self.toggle_auto_update)
         auto_update_cb.pack(anchor="w", padx=10, pady=5)
         
         # 上書き保存チェックボックス
         overwrite_cb = ctk.CTkCheckBox(output_section, text="同名ファイルを上書き",
-                                      variable=self.overwrite_files)
+                                      variable=self.overwrite_files,
+                                      font=self.font_body)
         overwrite_cb.pack(anchor="w", padx=10, pady=5)
         
         # チャンネルプレビュー表示チェックボックス
         channel_preview_cb = ctk.CTkCheckBox(output_section, text="チャンネル別プレビューを表示",
                                            variable=self.show_channel_preview,
+                                           font=self.font_body,
                                            command=self.toggle_channel_preview)
         channel_preview_cb.pack(anchor="w", padx=10, pady=5)
         
@@ -140,7 +183,7 @@ class SDFTextureApp:
         output_frame = ctk.CTkFrame(output_section)
         output_frame.pack(fill="x", padx=10, pady=(5, 10))
         
-        ctk.CTkLabel(output_frame, text="出力パス:").pack(anchor="w", padx=5, pady=(5, 0))
+        ctk.CTkLabel(output_frame, text="出力パス:", font=self.font_body).pack(anchor="w", padx=5, pady=(5, 0))
         
         path_frame = ctk.CTkFrame(output_frame)
         path_frame.pack(fill="x", padx=5, pady=5)
@@ -148,16 +191,16 @@ class SDFTextureApp:
         self.output_entry = ctk.CTkEntry(path_frame, textvariable=self.output_path)
         self.output_entry.pack(side="left", fill="x", expand=True, padx=(5, 5), pady=5)
         
-        ctk.CTkButton(path_frame, text="参照", width=60,
+        ctk.CTkButton(path_frame, text="参照", width=60, font=self.font_body,
                      command=self.browse_output).pack(side="right", padx=(0, 5), pady=5)
         
         # 保存ボタン
-        save_btn = ctk.CTkButton(parent, text="保存", height=35,
+        save_btn = ctk.CTkButton(parent, text="保存", height=35, font=self.font_body,
                                command=self.save_result)
         save_btn.pack(fill="x", padx=10, pady=(10, 5))
         
         # 名前をつけて保存ボタン
-        save_as_btn = ctk.CTkButton(parent, text="名前をつけて保存", height=35,
+        save_as_btn = ctk.CTkButton(parent, text="名前をつけて保存", height=35, font=self.font_body,
                                   command=self.save_as_result)
         save_as_btn.pack(fill="x", padx=10, pady=(5, 20))
     
@@ -165,7 +208,7 @@ class SDFTextureApp:
         """プレビューエリアを設定"""
         # タイトル
         ctk.CTkLabel(parent, text="プレビュー", 
-                    font=ctk.CTkFont(size=18, weight="bold")).pack(pady=(10, 10))
+                    font=self.font_medium).pack(pady=(10, 10))
         
         # プレビューフレーム（動的レイアウト）
         self.preview_container = ctk.CTkFrame(parent)
@@ -221,10 +264,10 @@ class SDFTextureApp:
         frame.grid(row=row, column=col, padx=5, pady=5, sticky="nsew")
         
         # タイトル
-        ctk.CTkLabel(frame, text=title, font=ctk.CTkFont(weight="bold")).pack(pady=(10, 5))
+        ctk.CTkLabel(frame, text=title, font=self.font_normal).pack(pady=(10, 5))
         
         # 画像表示ラベル
-        img_label = ctk.CTkLabel(frame, text="画像なし", width=250, height=200)
+        img_label = ctk.CTkLabel(frame, text="画像なし", width=250, height=200, font=self.font_body)
         img_label.pack(padx=10, pady=(0, 10), expand=True)
         
         self.preview_images[key] = img_label
