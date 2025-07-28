@@ -79,6 +79,11 @@ pyinstaller build_exe.spec --clean
 - specファイルでCustomTkinterのアセットファイルが含まれていることを確認
 - 隠れたインポートに必要なモジュールが追加されていることを確認
 
+### `RuntimeError: Too early to use font.families(): no default root window` エラー
+- Tkinterのルートウィンドウ作成前にフォント検出を実行したことが原因
+- フォント設定をメインウィンドウ作成後に移動することで解決
+- エラーハンドリングによりフォント検出失敗時はデフォルトフォントを使用
+
 ### 文字化けの問題
 - Windowsの標準フォント設定が適用されているか確認
 - コンソール出力で「使用フォント: [フォント名]」メッセージを確認
