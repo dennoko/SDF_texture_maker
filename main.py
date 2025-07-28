@@ -17,16 +17,20 @@ class FileWatcher(FileSystemEventHandler):
     
     def __init__(self, callback, file_path):
         self.callback = callback
-        self.file_path = file_path
+        # パスを正規化（Windowsの大文字小文字とスラッシュを統一）
+        self.file_path = os.path.normpath(os.path.abspath(file_path))
         self.last_modified = 0
     
     def on_modified(self, event):
-        if not event.is_directory and event.src_path == self.file_path:
-            # 短時間での重複イベントを防ぐ
-            current_time = time.time()
-            if current_time - self.last_modified > 1.0:
-                self.last_modified = current_time
-                self.callback()
+        if not event.is_directory:
+            # イベントパスも正規化して比較
+            event_path = os.path.normpath(os.path.abspath(event.src_path))
+            if event_path == self.file_path:
+                # 短時間での重複イベントを防ぐ
+                current_time = time.time()
+                if current_time - self.last_modified > 1.0:
+                    self.last_modified = current_time
+                    self.callback()
 
 
 class SDFTextureApp:
@@ -145,12 +149,6 @@ class SDFTextureApp:
         
         ctk.CTkButton(input_frame, text="参照", width=60, font=self.font_body,
                      command=self.browse_gradient).pack(side="right", padx=(0, 5), pady=5)
-        
-        # 処理ボタン
-        process_btn = ctk.CTkButton(parent, text="SDF テクスチャ生成", height=40,
-                                   font=self.font_medium,
-                                   command=self.process_sdf)
-        process_btn.pack(fill="x", padx=10, pady=20)
         
         # 出力設定セクション
         output_section = ctk.CTkFrame(parent)
@@ -329,8 +327,8 @@ class SDFTextureApp:
             original_img = Image.open(gradient_file).convert('RGBA')
             self.update_preview_image("original", original_img)
             
-            # 自動的にSDF処理を実行
-            self.auto_generate_sdf()
+            # 自動的にSDF処理を実行（初回は保存しない）
+            self.auto_generate_sdf(auto_save=False)
             
             # ファイル監視が有効な場合、監視を開始
             if self.auto_update.get():
@@ -338,7 +336,7 @@ class SDFTextureApp:
         else:
             messagebox.showerror("エラー", "グラデーション画像の読み込みに失敗しました")
     
-    def auto_generate_sdf(self):
+    def auto_generate_sdf(self, auto_save=False):
         """グラデーション画像指定時に自動でSDF生成"""
         try:
             # SDF処理実行
@@ -346,41 +344,19 @@ class SDFTextureApp:
                 self.update_all_previews()
                 print("SDF テクスチャが自動生成されました")
                 
-                # 自動保存を実行
-                output_file = self.output_path.get()
-                if output_file:
-                    if self.processor.save_result(output_file):
-                        print(f"自動保存完了: {output_file}")
-                    else:
-                        print("自動保存に失敗しました")
+                # 自動保存を実行（auto_saveがTrueの場合のみ）
+                if auto_save:
+                    output_file = self.output_path.get()
+                    if output_file:
+                        if self.processor.save_result(output_file):
+                            print(f"自動保存完了: {output_file}")
+                        else:
+                            print("自動保存に失敗しました")
             else:
                 print("SDF自動生成に失敗しました")
                 
         except Exception as e:
             print(f"SDF自動生成エラー: {str(e)}")
-    
-    def process_sdf(self):
-        """SDF処理を実行"""
-        gradient_file = self.gradient_path.get()
-        if not gradient_file or not os.path.exists(gradient_file):
-            messagebox.showerror("エラー", "グラデーション画像を選択してください")
-            return
-        
-        try:
-            # グラデーション画像を読み込み
-            if not self.processor.load_gradient_image(gradient_file):
-                messagebox.showerror("エラー", "グラデーション画像の読み込みに失敗しました")
-                return
-            
-            # SDF処理実行
-            if self.processor.process_sdf():
-                self.update_all_previews()
-                messagebox.showinfo("完了", "SDF テクスチャの生成が完了しました")
-            else:
-                messagebox.showerror("エラー", "SDF処理に失敗しました")
-                
-        except Exception as e:
-            messagebox.showerror("エラー", f"処理中にエラーが発生しました: {str(e)}")
     
     def save_as_result(self):
         """名前をつけて保存"""
@@ -506,7 +482,7 @@ class SDFTextureApp:
             print("ファイル監視停止")
     
     def auto_process(self):
-        """自動処理実行"""
+        """自動処理実行（ファイル変更時の自動更新）"""
         def process():
             try:
                 time.sleep(0.5)  # ファイル書き込み完了を待つ
@@ -524,8 +500,9 @@ class SDFTextureApp:
                 # SDF処理実行
                 if self.processor.process_sdf():
                     self.update_all_previews()
+                    print("自動処理: SDF テクスチャが再生成されました")
                     
-                    # 自動保存
+                    # 自動保存（ファイル変更時は自動保存する）
                     output_file = self.output_path.get()
                     if output_file:
                         if self.processor.save_result(output_file):
