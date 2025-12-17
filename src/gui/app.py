@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
 import tkinter.font as tkfont
-from PIL import Image, ImageTk
+from PIL import Image
 import os
 import threading
 from pathlib import Path
@@ -14,6 +14,10 @@ from ..core.sdf_processor import SDFProcessor
 from ..utils.file_watcher import FileWatcher
 from ..utils import config
 from ..utils.localization import LanguageManager
+
+# Import Panels
+from .panels.control_panel import ControlPanel
+from .panels.preview_panel import PreviewPanel
 
 class CtkDnDAware(ctk.CTk, TkinterDnD.DnDWrapper):
     """CustomTkinter window with Drag and Drop support"""
@@ -59,22 +63,11 @@ class SDFTextureApp:
         self.gradient_path = ctk.StringVar()
         self.output_path = ctk.StringVar()
         
-        # Preview Images
-        self.preview_images: Dict[str, Any] = {
-            "original": None, 
-            "r_channel": None, 
-            "g_channel": None, 
-            "combined": None
-        }
-        
-        # Preview Frames
-        self.preview_frames: Dict[str, Any] = {}
-        
-        # UI Element References (for localization updates)
-        self.ui_elements: Dict[str, Any] = {}
-        
+        # Initialize UI structure
         self.setup_ui()
-        self.update_ui_texts() # Initial text set
+        
+        # Initial updates
+        self.update_ui_texts() 
         
         # Window Close Protocol
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -102,221 +95,72 @@ class SDFTextureApp:
         print(f"Using font: {selected_font}")
     
     def setup_ui(self):
-        """Setup UI components"""
+        """Setup UI components using panels"""
         main_frame = ctk.CTkFrame(self.root)
         main_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
-        control_frame = ctk.CTkFrame(main_frame)
-        control_frame.pack(side="left", fill="y", padx=(0, 10), pady=0)
+        # Left: Control Panel
+        self.control_panel = ControlPanel(main_frame, app=self)
+        self.control_panel.pack(side="left", fill="y", padx=(0, 10), pady=0)
         
-        preview_frame = ctk.CTkFrame(main_frame)
-        preview_frame.pack(side="right", fill="both", expand=True, padx=0, pady=0)
+        # Right: Preview Panel
+        self.preview_panel = PreviewPanel(main_frame, app=self)
+        self.preview_panel.pack(side="right", fill="both", expand=True, padx=0, pady=0)
         
-        self.setup_control_panel(control_frame)
-        self.setup_preview_area(preview_frame)
-    
-    def setup_control_panel(self, parent):
-        """Setup Control Panel"""
-        # Title
-        self.ui_elements['title'] = ctk.CTkLabel(parent, text="", font=self.font_large)
-        self.ui_elements['title'].pack(pady=(10, 20))
-        
-        # Input Section
-        input_section = ctk.CTkFrame(parent)
-        input_section.pack(fill="x", padx=10, pady=5)
-        
-        self.ui_elements['lbl_gradient'] = ctk.CTkLabel(input_section, text="", font=self.font_normal)
-        self.ui_elements['lbl_gradient'].pack(anchor="w", padx=10, pady=(10, 5))
-        
-        input_frame = ctk.CTkFrame(input_section)
-        input_frame.pack(fill="x", padx=10, pady=(0, 10))
-        
-        self.gradient_entry = ctk.CTkEntry(input_frame, textvariable=self.gradient_path)
-        self.gradient_entry.pack(side="left", fill="x", expand=True, padx=(5, 5), pady=5)
-        
-        self.ui_elements['btn_browse_in'] = ctk.CTkButton(input_frame, text="", width=60, font=self.font_body,
-                     command=self.browse_gradient)
-        self.ui_elements['btn_browse_in'].pack(side="right", padx=(0, 5), pady=5)
-        
-        # Output Section
-        output_section = ctk.CTkFrame(parent)
-        output_section.pack(fill="x", padx=10, pady=5)
-        
-        self.ui_elements['lbl_output_settings'] = ctk.CTkLabel(output_section, text="", font=self.font_normal)
-        self.ui_elements['lbl_output_settings'].pack(anchor="w", padx=10, pady=(10, 5))
-        
-        # Checkboxes
-        self.ui_elements['chk_auto_update'] = ctk.CTkCheckBox(
-            output_section, text="", variable=self.auto_update, font=self.font_body, command=self.toggle_auto_update)
-        self.ui_elements['chk_auto_update'].pack(anchor="w", padx=10, pady=5)
-        
-        self.ui_elements['chk_overwrite'] = ctk.CTkCheckBox(
-            output_section, text="", variable=self.overwrite_files, font=self.font_body)
-        self.ui_elements['chk_overwrite'].pack(anchor="w", padx=10, pady=5)
-        
-        self.ui_elements['chk_channel_preview'] = ctk.CTkCheckBox(
-            output_section, text="", variable=self.show_channel_preview, font=self.font_body, command=self.toggle_channel_preview)
-        self.ui_elements['chk_channel_preview'].pack(anchor="w", padx=10, pady=5)
-        
-        # Output Path
-        output_frame = ctk.CTkFrame(output_section)
-        output_frame.pack(fill="x", padx=10, pady=(5, 10))
-        
-        self.ui_elements['lbl_output_path'] = ctk.CTkLabel(output_frame, text="", font=self.font_body)
-        self.ui_elements['lbl_output_path'].pack(anchor="w", padx=5, pady=(5, 0))
-        
-        path_frame = ctk.CTkFrame(output_frame)
-        path_frame.pack(fill="x", padx=5, pady=5)
-        
-        self.output_entry = ctk.CTkEntry(path_frame, textvariable=self.output_path)
-        self.output_entry.pack(side="left", fill="x", expand=True, padx=(5, 5), pady=5)
-        
-        self.ui_elements['btn_browse_out'] = ctk.CTkButton(path_frame, text="", width=60, font=self.font_body,
-                     command=self.browse_output)
-        self.ui_elements['btn_browse_out'].pack(side="right", padx=(0, 5), pady=5)
-        
-        # Buttons
-        self.ui_elements['btn_save'] = ctk.CTkButton(parent, text="", height=35, font=self.font_body,
-                     command=self.save_result)
-        self.ui_elements['btn_save'].pack(fill="x", padx=10, pady=(10, 5))
-        
-        self.ui_elements['btn_save_as'] = ctk.CTkButton(parent, text="", height=35, font=self.font_body,
-                     command=self.save_as_result)
-        self.ui_elements['btn_save_as'].pack(fill="x", padx=10, pady=(5, 20))
-        
-        # Language Switcher
-        self.ui_elements['chk_english_mode'] = ctk.CTkCheckBox(parent, text="", variable=self.english_mode, 
-                                                             font=self.font_body, command=self.toggle_language)
-        self.ui_elements['chk_english_mode'].pack(anchor="sw", padx=10, pady=10, side="bottom")
-
-    def setup_preview_area(self, parent):
-        """Setup Preview Area"""
-        self.ui_elements['lbl_preview'] = ctk.CTkLabel(parent, text="", font=self.font_medium)
-        self.ui_elements['lbl_preview'].pack(pady=(10, 10))
-        
-        self.preview_container = ctk.CTkFrame(parent)
-        self.preview_container.pack(fill="both", expand=True, padx=10, pady=(0, 10))
-        
-        self.setup_preview_layout()
-    
-    def setup_preview_layout(self):
-        """Configure Preview Grid Layout"""
-        for widget in self.preview_container.winfo_children():
-            widget.destroy()
-        self.preview_frames.clear()
-        self.preview_images.clear()
-        
-        if self.show_channel_preview.get():
-            # 2x2 Grid
-            self.preview_container.grid_columnconfigure(0, weight=1)
-            self.preview_container.grid_columnconfigure(1, weight=1)
-            self.preview_container.grid_rowconfigure(0, weight=1)
-            self.preview_container.grid_rowconfigure(1, weight=1)
-            
-            for i in range(2, 4):
-                self.preview_container.grid_columnconfigure(i, weight=0)
-                self.preview_container.grid_rowconfigure(i, weight=0)
-            
-            self.setup_preview_frame(self.preview_container, "lbl_preview_original", 0, 0, "original")
-            self.setup_preview_frame(self.preview_container, "lbl_preview_r", 0, 1, "r_channel")
-            self.setup_preview_frame(self.preview_container, "lbl_preview_g", 1, 0, "g_channel")
-            self.setup_preview_frame(self.preview_container, "lbl_preview_combined", 1, 1, "combined")
-        else:
-            # 1x2 Grid
-            self.preview_container.grid_columnconfigure(0, weight=1)
-            self.preview_container.grid_columnconfigure(1, weight=1)
-            self.preview_container.grid_rowconfigure(0, weight=1)
-            
-            for i in range(2, 4):
-                self.preview_container.grid_columnconfigure(i, weight=0)
-            for i in range(1, 4):
-                self.preview_container.grid_rowconfigure(i, weight=0)
-            
-            self.setup_preview_frame(self.preview_container, "lbl_preview_original", 0, 0, "original")
-            self.setup_preview_frame(self.preview_container, "lbl_preview_combined", 0, 1, "combined")
-    
-    def setup_preview_frame(self, parent, title_key, row, col, key):
-        """Setup individual preview frame"""
-        frame = ctk.CTkFrame(parent)
-        frame.grid(row=row, column=col, padx=5, pady=5, sticky="nsew")
-        
-        # Create dynamic label
-        lbl = ctk.CTkLabel(frame, text=self.lang.get(title_key), font=self.font_normal)
-        lbl.pack(pady=(10, 5))
-        
-        # Store for translation
-        # Note: Since the preview layout is rebuilt, we need to track these dynamically
-        # or just set text once on creation since setup_preview_layout is called on refresh?
-        # Actually it's cleaner to just set it here. If language changes, setup_preview_layout can be called.
-        
-        img_label = ctk.CTkLabel(frame, text=self.lang.get("lbl_no_image"), width=250, height=200, font=self.font_body)
-        img_label.pack(padx=10, pady=(0, 10), expand=True)
-        
-        self.preview_images[key] = img_label
-        self.preview_frames[key] = frame
+        # Initial Layout
+        self.preview_panel.setup_layout()
     
     def update_ui_texts(self):
         """Update all UI texts based on current language"""
         self.root.title(self.lang.get("app_title"))
         
-        # Control Panel
-        self.ui_elements['title'].configure(text=self.lang.get("app_title"))
-        self.ui_elements['lbl_gradient'].configure(text=self.lang.get("lbl_gradient"))
-        self.ui_elements['btn_browse_in'].configure(text=self.lang.get("btn_browse"))
-        self.ui_elements['lbl_output_settings'].configure(text=self.lang.get("lbl_output_settings"))
-        self.ui_elements['chk_auto_update'].configure(text=self.lang.get("chk_auto_update"))
-        self.ui_elements['chk_overwrite'].configure(text=self.lang.get("chk_overwrite"))
-        self.ui_elements['chk_channel_preview'].configure(text=self.lang.get("chk_channel_preview"))
-        self.ui_elements['lbl_output_path'].configure(text=self.lang.get("lbl_output_path"))
-        self.ui_elements['btn_browse_out'].configure(text=self.lang.get("btn_browse"))
-        self.ui_elements['btn_save'].configure(text=self.lang.get("btn_save"))
-        self.ui_elements['btn_save_as'].configure(text=self.lang.get("btn_save_as"))
-        self.ui_elements['lbl_preview'].configure(text=self.lang.get("lbl_preview"))
-        self.ui_elements['chk_english_mode'].configure(text=self.lang.get("chk_english_mode"))
-        
-        # Rebuild preview layout to update titles
-        self.setup_preview_layout()
-        
-        if self.processor.result_image is not None or self.processor.gradient_image is not None:
-             # Refresh images if they exist (images stay, but "No Image" text needs update if empty?)
-             # Actually setup_preview_layout clears images, so we need to reload them to labels
-             self.update_all_previews()
-             if self.processor.gradient_image is not None:
-                 # Need to re-set original image
-                 if os.path.exists(self.gradient_path.get()):
-                     img = Image.open(self.gradient_path.get()).convert('RGBA')
-                     self.update_preview_image("original", img)
-
-    def toggle_channel_preview(self):
-        """Toggle channel preview mode"""
-        self.setup_preview_layout()
-        
-        if self.processor.gradient_image is not None:
-            gradient_file = self.gradient_path.get()
-            if gradient_file and os.path.exists(gradient_file):
-                original_img = Image.open(gradient_file).convert('RGBA')
-                self.update_preview_image("original", original_img)
-        
-        if self.processor.result_image is not None:
-            self.update_all_previews()
+        # Update panels
+        self.control_panel.update_texts()
+        self.preview_panel.update_texts()
 
     def toggle_language(self):
         """Toggle language between Japanese and English"""
         new_lang = "en" if self.english_mode.get() else "ja"
         self.lang.set_language(new_lang)
         self.update_ui_texts()
-        
+
+    def toggle_channel_preview(self):
+        """Toggle channel preview mode"""
+        self.preview_panel.setup_layout()
+        # Trigger image update via panel
+        self.update_all_previews()
+    
+    def toggle_auto_update(self):
+        """Toggle auto-update"""
+        if self.auto_update.get():
+            self.start_file_watching()
+        else:
+            self.stop_file_watching()
+            
+    def update_all_previews(self):
+        """Update preview panel images"""
+        # Original
+        if self.processor.gradient_image is not None:
+             gradient_file = self.gradient_path.get()
+             if gradient_file and os.path.exists(gradient_file):
+                 try:
+                     original_img = Image.open(gradient_file).convert('RGBA')
+                     self.preview_panel.set_image("original", original_img)
+                 except Exception as e:
+                     print(f"Preview update error (original): {e}")
+
+        # Others
+        if self.processor.result_image is not None:
+            self.preview_panel.update_all_images(self.processor)
+
+    # --- Logic Methods ---
+
     def on_drop(self, event):
         """Handle Drag and Drop event"""
         try:
-            # Windows path handling (tkinterdnd2 returns paths wrapped in curly braces if they contain spaces)
             path = event.data
             if path.startswith('{') and path.endswith('}'):
                 path = path[1:-1]
-            
-            # If multiple files dropped, take the first one? tkinterdnd2 usually returns list if spaces?
-            # Actually on Windows it might be space separated if multiple?
-            # For simplicity, assume one file or handle curly braces simple case
             
             self.gradient_path.set(path)
             self.update_output_path()
@@ -360,8 +204,9 @@ class SDFTextureApp:
             return
         
         if self.processor.load_gradient_image(gradient_file):
+            # Update original preview immediately
             original_img = Image.open(gradient_file).convert('RGBA')
-            self.update_preview_image("original", original_img)
+            self.preview_panel.set_image("original", original_img)
             
             self.auto_generate_sdf(auto_save=False)
             
@@ -411,37 +256,7 @@ class SDFTextureApp:
             self.output_path.set(output_file)
         else:
             messagebox.showerror(self.lang.get("msg_error"), self.lang.get("msg_save_failed"))
-    
-    def update_all_previews(self):
-        """Update all preview images"""
-        if self.processor.result_image is None:
-            return
-        
-        r_img, g_img, combined_img = self.processor.get_preview_channels()
-        
-        if self.show_channel_preview.get():
-            if r_img: self.update_preview_image("r_channel", r_img)
-            if g_img: self.update_preview_image("g_channel", g_img)
-        
-        if combined_img:
-            self.update_preview_image("combined", combined_img)
-    
-    def update_preview_image(self, key, pil_image):
-        """Update a specific preview image"""
-        if key not in self.preview_frames:
-            return
-        if key not in self.preview_images or self.preview_images[key] is None:
-            return
-        
-        display_size = (200, 200)
-        img_copy = pil_image.copy()
-        img_copy.thumbnail(display_size, Image.Resampling.LANCZOS)
-        
-        photo = ImageTk.PhotoImage(img_copy)
-        
-        self.preview_images[key].configure(image=photo, text="")
-        self.preview_images[key].image = photo
-    
+
     def save_result(self):
         """Save result to current path"""
         if self.processor.result_image is None:
@@ -450,11 +265,10 @@ class SDFTextureApp:
         
         output_file = self.output_path.get()
         if not output_file:
-            messagebox.showerror(self.lang.get("msg_error"), self.lang.get("msg_save_failed")) # Generic error for no path
+            messagebox.showerror(self.lang.get("msg_error"), self.lang.get("msg_save_failed"))
             return
         
         if os.path.exists(output_file) and not self.overwrite_files.get():
-            # Using format for message
             if not messagebox.askyesno(self.lang.get("msg_error"), self.lang.get("msg_overwrite_confirm", output_file)):
                 return
         
@@ -463,19 +277,12 @@ class SDFTextureApp:
         else:
             messagebox.showerror(self.lang.get("msg_error"), self.lang.get("msg_save_failed"))
     
-    def toggle_auto_update(self):
-        """Toggle auto-update"""
-        if self.auto_update.get():
-            self.start_file_watching()
-        else:
-            self.stop_file_watching()
-    
     def start_file_watching(self):
         """Start file watcher"""
         gradient_file = self.gradient_path.get()
         if not gradient_file or not os.path.exists(gradient_file):
             self.auto_update.set(False)
-            messagebox.showwarning(self.lang.get("msg_error"), self.lang.get("msg_load_error")) # Reusing load error
+            messagebox.showwarning(self.lang.get("msg_error"), self.lang.get("msg_load_error"))
             return
         
         self.stop_file_watching()
@@ -509,9 +316,9 @@ class SDFTextureApp:
                 if not self.processor.load_gradient_image(gradient_file):
                     print("Auto-process: Failed to reload image")
                     return
-                
+                # Update original preview immediately
                 original_img = Image.open(gradient_file).convert('RGBA')
-                self.update_preview_image("original", original_img)
+                self.preview_panel.set_image("original", original_img)
                 
                 if self.processor.process_sdf():
                     self.update_all_previews()
