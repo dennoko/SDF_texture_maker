@@ -1,0 +1,110 @@
+{
+    "app_title": {
+        "ja": "SDF Texture Maker for lilToon",
+        "en": "SDF Texture Maker for lilToon"
+    },
+    "lbl_gradient": {
+        "ja": "グラデーション画像",
+        "en": "Gradient Image"
+    },
+    "btn_browse": {
+        "ja": "参照",
+        "en": "Browse"
+    },
+    "lbl_output_settings": {
+        "ja": "出力設定",
+        "en": "Output Settings"
+    },
+    "chk_auto_update": {
+        "ja": "ファイル変更時に自動更新",
+        "en": "Auto Update on File Change"
+    },
+    "chk_overwrite": {
+        "ja": "同名ファイルを上書き",
+        "en": "Overwrite Existing Files"
+    },
+    "chk_channel_preview": {
+        "ja": "チャンネル別プレビューを表示",
+        "en": "Show Channel Previews"
+    },
+    "lbl_output_path": {
+        "ja": "出力パス:",
+        "en": "Output Path:"
+    },
+    "btn_save": {
+        "ja": "保存",
+        "en": "Save"
+    },
+    "btn_save_as": {
+        "ja": "名前をつけて保存",
+        "en": "Save As..."
+    },
+    "lbl_preview": {
+        "ja": "プレビュー",
+        "en": "Preview"
+    },
+    "lbl_preview_original": {
+        "ja": "元画像",
+        "en": "Original"
+    },
+    "lbl_preview_r": {
+        "ja": "Rチャンネル（右光源）",
+        "en": "R Channel (Right Light)"
+    },
+    "lbl_preview_g": {
+        "ja": "Gチャンネル（左光源）",
+        "en": "G Channel (Left Light)"
+    },
+    "lbl_preview_combined": {
+        "ja": "合成結果",
+        "en": "Combined"
+    },
+    "lbl_no_image": {
+        "ja": "画像なし",
+        "en": "No Image"
+    },
+    "msg_success": {
+        "ja": "完了",
+        "en": "Success"
+    },
+    "msg_error": {
+        "ja": "エラー",
+        "en": "Error"
+    },
+    "msg_save_complete": {
+        "ja": "保存が完了しました: {}",
+        "en": "Saved to: {}"
+    },
+    "msg_save_failed": {
+        "ja": "保存に失敗しました",
+        "en": "Failed to save"
+    },
+    "msg_no_image_save": {
+        "ja": "保存する画像がありません。まずSDF処理を実行してください。",
+        "en": "No image to save. Run SDF processing first."
+    },
+    "msg_overwrite_confirm": {
+        "ja": "ファイル '{}' が既に存在します。上書きしますか？",
+        "en": "File '{}' exists. Overwrite?"
+    },
+    "msg_load_error": {
+        "ja": "グラデーション画像の読み込みに失敗しました",
+        "en": "Failed to load gradient image"
+    },
+    "chk_english_mode": {
+        "ja": "Enable English mode",
+        "en": "Enable English mode"
+    },
+    "file_dialog_gradient": {
+        "ja": "グラデーション画像を選択",
+        "en": "Select Gradient Image"
+    },
+    "file_dialog_output": {
+        "ja": "出力先を選択",
+        "en": "Select Output Path"
+    },
+    "file_dialog_save_as": {
+        "ja": "名前をつけて保存",
+        "en": "Save As"
+    }
+}
