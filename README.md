@@ -188,5 +188,22 @@ pip install pyinstaller  # EXE化用
 バグ報告や機能要望は [GitHub Issues](https://github.com/dennoko/SDF_texture_maker/issues) までお願いします。
 
 ## ライセンス
+このソフトウェアは[MITライセンス](LICENSE/LICENSE)の下で提供されています。
 
-このソフトウェアはMITライセンスの下で提供されています。
+Copyright (c) 2025 dennoko
+
+### サードパーティ製ライブラリのライセンス
+
+本ソフトウェアは以下のオープンソースライブラリを使用しています。各ライブラリのライセンスは `LICENSE/` ディレクトリに含まれています。
+
+| ライブラリ | ライセンス | 用途 | 商用利用 |
+|:-----------|:-----------|:-----|:---------|
+| [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) | MIT License | GUIフレームワーク | 可 |
+| [Pillow](https://python-pillow.org/) | HPND License | 画像処理 | 可 |
+| [NumPy](https://numpy.org/) | BSD 3-Clause | 数値計算 | 可 |
+| [OpenCV (opencv-python)](https://github.com/opencv/opencv-python) | Apache License 2.0 | コンピュータビジョン処理 | 可 |
+| [Watchdog](https://github.com/gorakhargosh/watchdog) | Apache License 2.0 | ファイルシステム監視 | 可 |
+| [packaging](https://github.com/pypa/packaging) | Apache License 2.0 | バージョンハンドリング | 可 |
+| [TkinterDnD2](https://github.com/Eliav2/tkinterdnd2) | MIT License | ドラッグ&ドロップ機能 | 可 |
+
+※ すべてのライブラリは、適切な著作権表示を行うことで商用利用が可能です。各ライセンスの詳細は `LICENSE/` ディレクトリ内のテキストファイルをご確認ください。
