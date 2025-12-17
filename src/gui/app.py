@@ -29,6 +29,14 @@ class SDFTextureApp:
     """Main application class for SDF Make Supporter"""
     
     def __init__(self):
+        # Fix taskbar icon on Windows
+        try:
+            from ctypes import windll
+            myappid = 'mycompany.sdfmakesupporter.v1' # arbitrary string
+            windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+        except Exception as e:
+            print(f"AppUserModelID setup failed: {e}")
+
         # CustomTkinter Settings
         ctk.set_appearance_mode(config.THEME_MODE)
         ctk.set_default_color_theme(config.THEME_COLOR)
@@ -45,6 +53,19 @@ class SDFTextureApp:
         # Encode for Windows DnD support
         self.root.drop_target_register(DND_FILES)
         self.root.dnd_bind('<<Drop>>', self.on_drop)
+        
+        # Set Icon
+        try:
+            icon_path = config.get_resource_path(os.path.join("icon", "icon.ico"))
+            if os.path.exists(icon_path):
+                self.root.iconbitmap(icon_path)
+            else:
+                # Fallback for dev environment if not bundled
+                dev_icon_path = os.path.join(os.getcwd(), "icon", "icon.ico")
+                if os.path.exists(dev_icon_path):
+                    self.root.iconbitmap(dev_icon_path)
+        except Exception as e:
+            print(f"Icon load error: {e}")
         
         # Setup fonts
         self.setup_fonts()

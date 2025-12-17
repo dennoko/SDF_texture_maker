@@ -1,7 +1,7 @@
 # System Overview
 
 ## 概要
-SDF Make Supporter for lilToonは、グラデーション画像からSigned Distance Field (SDF) テクスチャを生成するWindowsデスクトップアプリケーションです。VRChatのアバター制作ワークフロー、特にlilToonシェーダーを使用する際のテクスチャ作成を支援します。
+SDF Make Supporterは、グラデーション画像からSigned Distance Field (SDF) テクスチャを生成するWindowsデスクトップアプリケーションです。VRChatのアバター制作ワークフロー、特にlilToonシェーダーを使用する際のテクスチャ作成を支援します。
 
 ## アーキテクチャ
 

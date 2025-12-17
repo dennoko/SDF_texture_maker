@@ -14,6 +14,11 @@ try:
     ctk_assets = os.path.join(ctk_path, 'assets')
     if os.path.exists(ctk_assets):
         datas.append((ctk_assets, 'customtkinter/assets'))
+        
+    # Add icon
+    icon_path = os.path.join(current_dir, 'icon')
+    if os.path.exists(icon_path):
+        datas.append((str(icon_path), 'icon'))
 except ImportError:
     pass
 
@@ -102,5 +107,6 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None,  # アイコンファイルがあれば指定
+    icon=['icon\\\\icon.ico'],
+    version=None,
 )

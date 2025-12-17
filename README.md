@@ -1,4 +1,4 @@
-# SDF Make Supporter for lilToon
+# SDF Make Supporter
 
 lilToonのメインテクスチャ（_MainTex）から、影色マップ（_Shadow1stFill, _Shadow2ndFill ...）などで使用するための距離場（SDF）テクスチャを作成するツールです。
 
