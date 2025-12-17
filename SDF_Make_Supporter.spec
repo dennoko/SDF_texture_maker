@@ -10,22 +10,36 @@ current_dir = Path.cwd()
 hookspath = []
 hooksconfig = {}
 
-# CustomTkinterのパスを動的に検出
+# パスとデータ収集の設定
+datas = []
+
+# CustomTkinter
 try:
     import customtkinter
     ctk_path = os.path.dirname(customtkinter.__file__)
     ctk_assets = os.path.join(ctk_path, 'assets')
     if os.path.exists(ctk_assets):
-        datas = [(ctk_assets, 'customtkinter/assets')]
-    else:
-        datas = []
-        
-    # Add icon
-    icon_path = os.path.join(current_dir, 'icon')
-    if os.path.exists(icon_path):
-        datas.append((str(icon_path), 'icon'))
+        datas.append((ctk_assets, 'customtkinter/assets'))
 except ImportError:
-    datas = []
+    pass
+
+# tkinterdnd2
+try:
+    import tkinterdnd2
+    tkdnd2_path = os.path.dirname(tkinterdnd2.__file__)
+    datas.append((tkdnd2_path, 'tkinterdnd2'))
+except ImportError:
+    pass
+
+# Add src/resources
+resources_path = os.path.join(current_dir, 'src', 'resources')
+if os.path.exists(resources_path):
+    datas.append((str(resources_path), 'src/resources'))
+
+# Add icon
+icon_path = os.path.join(current_dir, 'icon')
+if os.path.exists(icon_path):
+    datas.append((str(icon_path), 'icon'))
 
 block_cipher = None
 
@@ -41,6 +55,7 @@ a = Analysis(
         'tkinter.filedialog',
         'tkinter.messagebox',
         'customtkinter',
+        'tkinterdnd2',
         'PIL',
         'PIL.Image',
         'PIL.ImageTk',
