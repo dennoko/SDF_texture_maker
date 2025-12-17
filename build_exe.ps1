@@ -1,31 +1,38 @@
 # ビルド自動化スクリプト
 # このスクリプトはEXEファイルを自動でビルドします
 
-Write-Host "SDF Make Supporter のEXE化を開始します..." -ForegroundColor Green
+$AppName = "SDF_Make_Supporter"
+$SpecFile = "$AppName.spec"
 
-# 仮想環境のPyInstallerを使用してビルド
-$pyinstaller_path = "C:/Users/dennoko/Programming/Python/SDF_texture_maker/.venv/Scripts/pyinstaller.exe"
-$spec_file = "build_exe_final.spec"
+Write-Host "Build Process for $AppName" -ForegroundColor Cyan
 
-if (Test-Path $pyinstaller_path) {
-    Write-Host "PyInstallerでビルド中..." -ForegroundColor Yellow
-    & $pyinstaller_path $spec_file --clean
-    
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "ビルド完了!" -ForegroundColor Green
-        Write-Host "EXEファイルの場所: dist\SDF_Make_Supporter.exe" -ForegroundColor Cyan
-        
-        # ファイルサイズを表示
-        $exe_path = ".\dist\SDF_Make_Supporter.exe"
-        if (Test-Path $exe_path) {
-            $file_info = Get-Item $exe_path
-            $size_mb = [math]::Round($file_info.Length / 1MB, 2)
-            Write-Host "ファイルサイズ: $size_mb MB" -ForegroundColor Cyan
-        }
-    } else {
-        Write-Host "ビルドに失敗しました。" -ForegroundColor Red
+# 1. Clean up previous builds
+if (Test-Path "dist") { Remove-Item "dist" -Recurse -Force }
+if (Test-Path "build") { Remove-Item "build" -Recurse -Force }
+
+# 2. Check for PyInstaller
+try {
+    # Check if we can run PyInstaller module
+    python -c "import PyInstaller" 2>$null
+    if ($LASTEXITCODE -ne 0) { throw "PyInstaller module not found" }
+} catch {
+    Write-Host "Error: PyInstaller is not installed in the current environment." -ForegroundColor Red
+    Write-Host "Run: pip install pyinstaller" -ForegroundColor Yellow
+    exit 1
+}
+
+# 3. Run Build
+Write-Host "Starting PyInstaller..." -ForegroundColor Green
+python -m PyInstaller $SpecFile --clean --noconfirm
+
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "`nBuild SUCCESS!" -ForegroundColor Green
+    $ExePath = "dist\$AppName.exe"
+    if (Test-Path $ExePath) {
+        $Size = [math]::Round((Get-Item $ExePath).Length / 1MB, 2)
+        Write-Host "Output: $ExePath ($Size MB)" -ForegroundColor Cyan
     }
 } else {
-    Write-Host "PyInstallerが見つかりません。" -ForegroundColor Red
-    Write-Host "pip install pyinstaller を実行してください。" -ForegroundColor Yellow
+    Write-Host "`nBuild FAILED." -ForegroundColor Red
+    exit 1
 }
