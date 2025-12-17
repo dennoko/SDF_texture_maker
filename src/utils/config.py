@@ -22,7 +22,7 @@ FONT_FAMILIES = [
 ]
 
 # UI Configuration
-WINDOW_TITLE = "SDF Texture Maker for lilToon"
+WINDOW_TITLE = "SDF Make Supporter for lilToon"
 WINDOW_GEOMETRY = "1200x800"
 THEME_MODE = "dark"
 THEME_COLOR = "dark-blue"

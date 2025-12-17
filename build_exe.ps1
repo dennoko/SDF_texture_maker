@@ -1,7 +1,7 @@
 # ビルド自動化スクリプト
 # このスクリプトはEXEファイルを自動でビルドします
 
-Write-Host "SDF Texture Maker のEXE化を開始します..." -ForegroundColor Green
+Write-Host "SDF Make Supporter のEXE化を開始します..." -ForegroundColor Green
 
 # 仮想環境のPyInstallerを使用してビルド
 $pyinstaller_path = "C:/Users/dennoko/Programming/Python/SDF_texture_maker/.venv/Scripts/pyinstaller.exe"
@@ -13,10 +13,10 @@ if (Test-Path $pyinstaller_path) {
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host "ビルド完了!" -ForegroundColor Green
-        Write-Host "EXEファイルの場所: dist\SDF_Texture_Maker.exe" -ForegroundColor Cyan
+        Write-Host "EXEファイルの場所: dist\SDF_Make_Supporter.exe" -ForegroundColor Cyan
         
         # ファイルサイズを表示
-        $exe_path = ".\dist\SDF_Texture_Maker.exe"
+        $exe_path = ".\dist\SDF_Make_Supporter.exe"
         if (Test-Path $exe_path) {
             $file_info = Get-Item $exe_path
             $size_mb = [math]::Round($file_info.Length / 1MB, 2)

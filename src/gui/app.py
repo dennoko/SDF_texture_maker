@@ -26,7 +26,7 @@ class CtkDnDAware(ctk.CTk, TkinterDnD.DnDWrapper):
         self.TkdndVersion = TkinterDnD._require(self)
 
 class SDFTextureApp:
-    """Main application class for SDF Texture Maker"""
+    """Main application class for SDF Make Supporter"""
     
     def __init__(self):
         # CustomTkinter Settings

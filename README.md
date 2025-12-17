@@ -1,8 +1,9 @@
-# SDF Texture Maker for lilToon
+# SDF Make Supporter for lilToon
 
-VRChatアバター向けlilToonシェーダーで使用するSDFテクスチャを作成するツールです。
+lilToonのメインテクスチャ（_MainTex）から、影色マップ（_Shadow1stFill, _Shadow2ndFill ...）などで使用するための距離場（SDF）テクスチャを作成するツールです。
 
-## 機能
+## 特徴
+`SDF Make Supporter` は以下の機能を備えています：
 
 - **SDF テクスチャ生成**: グラデーション画像を元に、lilToon用のSDF（Signed Distance Field）テクスチャを生成
 - **チャンネル分離**: Rチャンネル（右光源）、Gチャンネル（左光源）に分けて陰影情報を格納

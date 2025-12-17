@@ -74,7 +74,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='SDF_Texture_Maker',
+    name='SDF_Make_Supporter',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
