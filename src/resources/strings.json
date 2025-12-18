@@ -23,6 +23,10 @@
         "ja": "同名ファイルを上書き",
         "en": "Overwrite Existing Files"
     },
+    "chk_swap_rg": {
+        "ja": "R/G（左右）を反転",
+        "en": "Swap R/G (Left/Right)"
+    },
     "chk_channel_preview": {
         "ja": "チャンネル別プレビューを表示",
         "en": "Show Channel Previews"

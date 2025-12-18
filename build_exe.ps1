@@ -7,7 +7,9 @@ $SpecFile = "$AppName.spec"
 Write-Host "Build Process for $AppName" -ForegroundColor Cyan
 
 # 1. Clean up previous builds
-if (Test-Path "dist") { Remove-Item "dist" -Recurse -Force }
+if (Test-Path "dist") {
+    Get-ChildItem -Path "dist" -Exclude "UserManual.md" | Remove-Item -Recurse -Force
+}
 if (Test-Path "build") { Remove-Item "build" -Recurse -Force }
 
 # 2. Check for PyInstaller
