@@ -11,12 +11,14 @@ from typing import Dict, Optional, Any
 from tkinterdnd2 import TkinterDnD, DND_FILES
 
 from ..core.sdf_processor import SDFProcessor
+from ..core.channel_processor import ChannelProcessor
 from ..utils.file_watcher import FileWatcher
 from ..utils import config
 from ..utils.localization import LanguageManager
 
 # Import Panels
 from .panels.control_panel import ControlPanel
+from .panels.channel_panel import ChannelPanel
 from .panels.preview_panel import PreviewPanel
 
 class CtkDnDAware(ctk.CTk, TkinterDnD.DnDWrapper):
@@ -72,6 +74,7 @@ class SDFTextureApp:
         
         # Logic Processor
         self.processor = SDFProcessor()
+        self.channel_processor = ChannelProcessor()
         
         # File Watcher
         self.observer: Optional[Observer] = None
@@ -82,6 +85,8 @@ class SDFTextureApp:
         
         # Path Variables
         self.gradient_path = ctk.StringVar()
+        self.b_channel_path = ctk.StringVar()
+        self.a_channel_path = ctk.StringVar()
         self.output_path = ctk.StringVar()
         
         # Initialize UI structure
@@ -121,8 +126,24 @@ class SDFTextureApp:
         main_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
         # Left: Control Panel
+        # Left: Control Panel
         self.control_panel = ControlPanel(main_frame, app=self)
         self.control_panel.pack(side="left", fill="y", padx=(0, 10), pady=0)
+
+        # Add Channel Panel inside Control Panel or below it?
+        # The plan was to add it via ControlPanel class, but here we instantiate ControlPanel.
+        # Let's check ControlPanel implementation again.
+        # ControlPanel is a Frame. We can add ChannelPanel inside ControlPanel.
+        # BUT, the request said "separate file".
+        # If I modify ControlPanel to include ChannelPanel, that modifies ControlPanel.
+        # If I add it here in App, I need to make sure the layout is correct.
+        # ControlPanel takes "modifications" well if they are external?
+        # No, ControlPanel is a class.
+        # Better to modify ControlPanel to include ChannelPanel.
+        # Wait, the plan said "ControlPanelの末尾にChannelConfigPanelを追加する形にします".
+        # So I will modify ControlPanel to instantiate ChannelPanel.
+        # So NO changes here for that.
+
         
         # Right: Preview Panel
         self.preview_panel = PreviewPanel(main_frame, app=self)
@@ -199,6 +220,41 @@ class SDFTextureApp:
             self.gradient_path.set(file_path)
             self.update_output_path()
             self.load_and_preview_gradient()
+
+    def browse_extra_channel(self, channel_type: str):
+        """Browse for B/A channel image"""
+        file_path = filedialog.askopenfilename(
+            title=f"Select {channel_type} Channel Image",
+            filetypes=config.IMAGE_FILE_TYPES
+        )
+        if file_path:
+            if channel_type == 'B':
+                self.b_channel_path.set(file_path)
+            elif channel_type == 'A':
+                self.a_channel_path.set(file_path)
+            
+            self.load_extra_channel(channel_type)
+
+    def clear_extra_channel(self, channel_type: str):
+        """Clear B/A channel image"""
+        if channel_type == 'B':
+            self.b_channel_path.set("")
+        elif channel_type == 'A':
+            self.a_channel_path.set("")
+            
+        self.channel_processor.clear_channel(channel_type)
+        self.auto_generate_sdf(auto_save=False)
+
+    def load_extra_channel(self, channel_type: str):
+        """Load extra channel and regenerate"""
+        path = self.b_channel_path.get() if channel_type == 'B' else self.a_channel_path.get()
+        if not path or not os.path.exists(path):
+            return
+
+        if self.channel_processor.load_image(path, channel_type):
+            self.auto_generate_sdf(auto_save=False)
+        else:
+            print(f"Failed to load {channel_type} channel")
     
     def browse_output(self):
         """Browse for output path"""
@@ -240,6 +296,10 @@ class SDFTextureApp:
         """Automatically generate SDF"""
         try:
             if self.processor.process_sdf():
+                # Apply Channel Processing
+                if self.processor.result_image is not None:
+                    self.processor.result_image = self.channel_processor.process_channels(self.processor.result_image)
+
                 self.update_all_previews()
                 print("SDF texture auto-generated")
                 

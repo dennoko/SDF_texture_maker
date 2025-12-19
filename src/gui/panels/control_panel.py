@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Dict, Any
 
 if TYPE_CHECKING:
     from ..app import SDFTextureApp
+from .channel_panel import ChannelPanel
 
 class ControlPanel(ctk.CTkFrame):
     """Left side control panel container"""
@@ -36,6 +37,10 @@ class ControlPanel(ctk.CTkFrame):
                      command=self.app.browse_gradient)
         self.ui_elements['btn_browse_in'].pack(side="right", padx=(0, 5), pady=5)
         
+        # Channel Panel
+        self.channel_panel = ChannelPanel(self, app=self.app)
+        self.channel_panel.pack(fill="x", padx=10, pady=5)
+
         # Output Section
         output_section = ctk.CTkFrame(self)
         output_section.pack(fill="x", padx=10, pady=5)
@@ -95,6 +100,8 @@ class ControlPanel(ctk.CTkFrame):
         self.ui_elements['title'].configure(text=lang.get("app_title"))
         self.ui_elements['lbl_gradient'].configure(text=lang.get("lbl_gradient"))
         self.ui_elements['btn_browse_in'].configure(text=lang.get("btn_browse"))
+        self.ui_elements['btn_browse_in'].configure(text=lang.get("btn_browse"))
+        self.channel_panel.update_texts()
         self.ui_elements['lbl_output_settings'].configure(text=lang.get("lbl_output_settings"))
         self.ui_elements['chk_auto_update'].configure(text=lang.get("chk_auto_update"))
         self.ui_elements['chk_overwrite'].configure(text=lang.get("chk_overwrite"))
