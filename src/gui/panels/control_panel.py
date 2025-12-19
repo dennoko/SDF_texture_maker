@@ -58,6 +58,11 @@ class ControlPanel(ctk.CTkFrame):
             command=self.app.toggle_channel_preview)
         self.ui_elements['chk_channel_preview'].pack(anchor="w", padx=10, pady=5)
         
+        self.ui_elements['chk_swap_rg'] = ctk.CTkCheckBox(
+            output_section, text="", variable=self.app.swap_rg, font=self.app.font_body,
+            command=self.app.toggle_settings)
+        self.ui_elements['chk_swap_rg'].pack(anchor="w", padx=10, pady=5)
+        
         # Output Path
         output_frame = ctk.CTkFrame(output_section)
         output_frame.pack(fill="x", padx=10, pady=(5, 10))
@@ -99,6 +104,7 @@ class ControlPanel(ctk.CTkFrame):
         self.ui_elements['chk_auto_update'].configure(text=lang.get("chk_auto_update"))
         self.ui_elements['chk_overwrite'].configure(text=lang.get("chk_overwrite"))
         self.ui_elements['chk_channel_preview'].configure(text=lang.get("chk_channel_preview"))
+        self.ui_elements['chk_swap_rg'].configure(text=lang.get("chk_swap_rg"))
         self.ui_elements['lbl_output_path'].configure(text=lang.get("lbl_output_path"))
         self.ui_elements['btn_browse_out'].configure(text=lang.get("btn_browse"))
         self.ui_elements['btn_save'].configure(text=lang.get("btn_save"))

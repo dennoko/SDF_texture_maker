@@ -1,3 +1,4 @@
+import json
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
 import tkinter.font as tkfont
@@ -79,6 +80,10 @@ class SDFTextureApp:
         self.overwrite_files = ctk.BooleanVar(value=True)
         self.show_channel_preview = ctk.BooleanVar(value=False)
         self.english_mode = ctk.BooleanVar(value=(self.lang.current_lang == "en"))
+        self.swap_rg = ctk.BooleanVar(value=False)
+        
+        # Load Settings (After variable initialization)
+        self.load_settings()
         
         # Path Variables
         self.gradient_path = ctk.StringVar()
@@ -143,13 +148,23 @@ class SDFTextureApp:
         """Toggle language between Japanese and English"""
         new_lang = "en" if self.english_mode.get() else "ja"
         self.lang.set_language(new_lang)
+        self.lang.set_language(new_lang)
         self.update_ui_texts()
+        self.save_settings()
+
+    def toggle_settings(self):
+        """Generic handler for settings toggle"""
+        self.save_settings()
+        # For swap_rg, we might want to re-process
+        self.auto_generate_sdf(auto_save=False)
 
     def toggle_channel_preview(self):
         """Toggle channel preview mode"""
         self.preview_panel.setup_layout()
+        self.preview_panel.setup_layout()
         # Trigger image update via panel
         self.update_all_previews()
+        self.save_settings()
     
     def toggle_auto_update(self):
         """Toggle auto-update"""
@@ -157,7 +172,55 @@ class SDFTextureApp:
             self.start_file_watching()
         else:
             self.stop_file_watching()
+        self.save_settings()
             
+
+    def load_settings(self):
+        """Load settings from JSON"""
+        settings_path = "settings.json"
+        if not os.path.exists(settings_path):
+            return
+            
+        try:
+            with open(settings_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                
+            # Note: Language is handled by LanguageManager
+            
+            if "auto_update" in data:
+                self.auto_update.set(data["auto_update"])
+            if "overwrite_files" in data:
+                self.overwrite_files.set(data["overwrite_files"])
+            if "show_channel_preview" in data:
+                self.show_channel_preview.set(data["show_channel_preview"])
+            if "swap_rg" in data:
+                self.swap_rg.set(data["swap_rg"])
+                
+        except Exception as e:
+            print(f"Failed to load settings: {e}")
+
+    def save_settings(self):
+        """Save settings to JSON"""
+        settings_path = "settings.json"
+        try:
+            # Load existing to preserve language setting
+            data = {}
+            if os.path.exists(settings_path):
+                with open(settings_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+            
+            data.update({
+                "auto_update": self.auto_update.get(),
+                "overwrite_files": self.overwrite_files.get(),
+                "show_channel_preview": self.show_channel_preview.get(),
+                "swap_rg": self.swap_rg.get()
+            })
+            
+            with open(settings_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=4)
+        except Exception as e:
+            print(f"Failed to save settings: {e}")
+
     def update_all_previews(self):
         """Update preview panel images"""
         # Original
@@ -239,7 +302,7 @@ class SDFTextureApp:
     def auto_generate_sdf(self, auto_save=False):
         """Automatically generate SDF"""
         try:
-            if self.processor.process_sdf():
+            if self.processor.process_sdf(swap_rg=self.swap_rg.get()):
                 self.update_all_previews()
                 print("SDF texture auto-generated")
                 
@@ -341,7 +404,7 @@ class SDFTextureApp:
                 original_img = Image.open(gradient_file).convert('RGBA')
                 self.preview_panel.set_image("original", original_img)
                 
-                if self.processor.process_sdf():
+                if self.processor.process_sdf(swap_rg=self.swap_rg.get()):
                     self.update_all_previews()
                     print("Auto-process: SDF regenerated")
                     

@@ -31,7 +31,7 @@ class SDFProcessor:
             print(f"Error loading image: {e}")
             return False
     
-    def create_sdf_from_gradient(self) -> np.ndarray:
+    def create_sdf_from_gradient(self, swap_rg: bool = False) -> np.ndarray:
         """
         Generate SDF texture from the loaded gradient image.
         
@@ -69,11 +69,21 @@ class SDFProcessor:
         # Create SDF texture
         sdf_texture = np.zeros((height, width, 4), dtype=np.uint8)
         
-        # R Channel: Right light (Flipped)
-        sdf_texture[:, :, 0] = (mask_flipped * 255).astype(np.uint8)
+        # R Channel
+        # Normal: Right light (Flipped mask)
+        # Swapped: Left light (Original mask)
+        if swap_rg:
+             sdf_texture[:, :, 0] = (mask_normalized * 255).astype(np.uint8)
+        else:
+             sdf_texture[:, :, 0] = (mask_flipped * 255).astype(np.uint8)
         
-        # G Channel: Left light (Original)
-        sdf_texture[:, :, 1] = (mask_normalized * 255).astype(np.uint8)
+        # G Channel
+        # Normal: Left light (Original)
+        # Swapped: Right light (Flipped)
+        if swap_rg:
+             sdf_texture[:, :, 1] = (mask_flipped * 255).astype(np.uint8)
+        else:
+             sdf_texture[:, :, 1] = (mask_normalized * 255).astype(np.uint8)
         
         # B Channel: Unused (Set to 0)
         sdf_texture[:, :, 2] = 0
@@ -83,7 +93,7 @@ class SDFProcessor:
         
         return sdf_texture
     
-    def process_sdf(self) -> bool:
+    def process_sdf(self, swap_rg: bool = False) -> bool:
         """
         Execute SDF processing.
         
@@ -94,7 +104,7 @@ class SDFProcessor:
             return False
         
         try:
-            self.result_image = self.create_sdf_from_gradient()
+            self.result_image = self.create_sdf_from_gradient(swap_rg=swap_rg)
             return True
             
         except Exception as e:
