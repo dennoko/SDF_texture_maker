@@ -15,6 +15,14 @@
         "ja": "出力設定",
         "en": "Output Settings"
     },
+    "lbl_channels": {
+        "ja": "チャンネル設定 (オプション)",
+        "en": "Channel Settings (Optional)"
+    },
+    "lbl_advanced_options": {
+        "ja": "詳細設定 (B/Aチャンネル)",
+        "en": "Advanced Settings (B/A Channels)"
+    },
     "chk_auto_update": {
         "ja": "ファイル変更時に自動更新",
         "en": "Auto Update on File Change"
