@@ -67,6 +67,8 @@ a = Analysis(
         'watchdog',
         'watchdog.observers',
         'watchdog.events',
+        'watchdog.observers.read_directory_changes',
+        'watchdog.observers.polling',
         'pathlib',
         'threading',
         'time',
